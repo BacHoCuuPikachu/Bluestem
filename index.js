@@ -3,23 +3,15 @@ const { BlobServiceClient } = require('@azure/storage-blob');
 const { v1: uuidv1} = require('uuid');
 require('dotenv').config();
 
-// Create the BlobServiceClient object which will be used to create a container client
-const blobServiceClient = BlobServiceClient.fromConnectionString(
-    process.env.AZURE_STORAGE_CONNECTION_STRING
-);
-
-// Create a unique name for the container
-const containerName = "main" + uuidv1();
-
-console.log("Creating container: " + containerName);
-
-// Get a reference to a container
-const containerClient = blobServiceClient.getContainerClient(containerName);
-// Create the container
-const createContainerResponse = await containerClient.create();
-console.log("\nContainer was created successfully. requestId: ", createContainerResponse.requestId);
-
 const server = http.createServer(async (request, response) => {
+    // Create the BlobServiceClient object which will be used to create a container client
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_STORAGE_CONNECTION_STRING
+    );
+        
+    // Get a reference to a container
+    const containerClient = blobServiceClient.getContainerClient('main');
+
     // Create a unique name for the blob
     const blobName = uuidv1() + ".txt";
 
