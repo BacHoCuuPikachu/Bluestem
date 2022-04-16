@@ -4,7 +4,7 @@ param linuxFxVersion string = 'node|14-lts' // The runtime stack of web app
 param location string = resourceGroup().location // Location for all resources
 param repositoryUrl string = 'https://github.com/BacHoCuuPikachu/Bluestem'
 param branch string = 'main'
-var storageAccountName = toLower(('storage-${webAppName}'))
+var storageAccountName = toLower('storage-${webAppName}')
 var appServicePlanName = toLower('AppServicePlan-${webAppName}')
 var webSiteName = toLower('wapp-${webAppName}')
 
@@ -57,7 +57,7 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
       linuxFxVersion: linuxFxVersion
       appSettings: [
         {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          name: 'STORAGEACCOUNT_CONNECTIONSTRING'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
         }
         {
