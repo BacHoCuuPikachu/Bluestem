@@ -4,8 +4,38 @@ param linuxFxVersion string = 'node|14-lts' // The runtime stack of web app
 param location string = resourceGroup().location // Location for all resources
 param repositoryUrl string = 'https://github.com/BacHoCuuPikachu/Bluestem'
 param branch string = 'main'
+var storageAccountName = toLower('storage${webAppName}')
 var appServicePlanName = toLower('AppServicePlan-${webAppName}')
 var webSiteName = toLower('wapp-${webAppName}')
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' = {
+  name: storageAccountName
+  location: location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+  properties: {
+    minimumTlsVersion: 'TLS1_2'
+    allowBlobPublicAccess: true
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow'
+    }
+    supportsHttpsTrafficOnly: true
+    encryption: {
+      keySource: 'Microsoft.Storage'
+      services: {
+        blob: {
+          keyType: 'Account'
+          enabled: true
+        }
+      }
+    }
+    accessTier: 'Hot'
+  }
+}
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
   location: location
@@ -17,6 +47,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   }
   kind: 'linux'
 }
+
 resource appService 'Microsoft.Web/sites@2020-06-01' = {
   name: webSiteName
   location: location
@@ -24,9 +55,16 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: linuxFxVersion
+      appSettings: [
+        {
+          name: 'AZURE_STORAGE_CONNECTION_STRING'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
     }
   }
 }
+
 resource srcControls 'Microsoft.Web/sites/sourcecontrols@2021-01-01' = {
   name: '${appService.name}/web'
   properties: {

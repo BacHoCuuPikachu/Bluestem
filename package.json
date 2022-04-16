@@ -7,5 +7,10 @@
     "author": "BacHoCuuPikachu",
     "scripts": {
         "start": "node index.js"
+    },
+    "dependencies": {
+        "@azure/storage-blob": "^12.9.0",
+        "dotenv": "^16.0.0",
+        "uuid": "^8.3.2"
     }
 }
