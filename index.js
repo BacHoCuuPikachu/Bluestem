@@ -4,9 +4,9 @@ const { v1: uuidv1} = require('uuid');
 require('dotenv').config()
 
 const server = http.createServer(async (request, response) => {
-    const STORAGE_CONNECTION_STRING = process.env.STORAGE_CONNECTION_STRING;
+    const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
 
-    if (!STORAGE_CONNECTION_STRING) {
+    if (!AZURE_STORAGE_CONNECTION_STRING) {
         response.writeHead(404, {"Content-Type": "text/plain"});
         response.end("Storage Connection string not found");
         return;
@@ -14,7 +14,7 @@ const server = http.createServer(async (request, response) => {
 
     // Create the BlobServiceClient object which will be used to create a container client
     const blobServiceClient = BlobServiceClient.fromConnectionString(
-        STORAGE_CONNECTION_STRING
+        AZURE_STORAGE_CONNECTION_STRING
     );
     
     // Create a unique name for the container
