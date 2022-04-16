@@ -24,6 +24,11 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: linuxFxVersion
+      appSettings: [
+        {
+          name: 'HELLO_WORLD'
+          value: 'Test env variable'
+        }
     }
   }
 }
