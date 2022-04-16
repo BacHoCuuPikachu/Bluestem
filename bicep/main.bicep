@@ -57,12 +57,8 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
       linuxFxVersion: linuxFxVersion
       appSettings: [
         {
-          name: 'STORAGEACCOUNT_CONNECTIONSTRING'
+          name: 'STORAGE_CONNECTION_STRING'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
-        }
-        {
-          name: 'HELLO_WORLD'
-          value: 'Hello, world!'
         }
       ]
     }
