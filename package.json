@@ -12,6 +12,7 @@
     "dependencies": {
         "@azure/storage-blob": "^12.9.0",
         "azure": "^2.3.1-preview",
+        "dotenv": "^16.0.0",
         "express": "^4.17.3",
         "formidable": "^2.0.1",
         "fs": "^0.0.1-security",
