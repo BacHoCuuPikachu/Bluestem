@@ -1,18 +1,42 @@
 const http = require('http');
-const formidable = require('formidable');
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
+const { BlobServiceClient } = require('@azure/storage-blob');
+const { v1: uuidv1} = require('uuid');
+require('dotenv').config();
 
-const PORT = process.env.PORT || 5000;
+const server = http.createServer(async (request, response) => {
+    // Create the BlobServiceClient object which will be used to create a container client
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_STORAGE_CONNECTION_STRING
+    );
+        
+    // Get a reference to a container
+    const containerClient = blobServiceClient.getContainerClient('main');
 
-const app = new express();
+    // Create a unique name for the blob
+    const blobName = uuidv1() + ".txt";
 
-app.use(express.static(path.join(__dirname, 'public')));
+    // Get a block blob client
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-app.listen(PORT, err => {
-    if (err) {
-        return console.log("ERROR", err);
+    var responseString = "\nUploading to Azure storage as blob:\n\t" + blobName;
+
+    // Upload data to the blob
+    const data = "Hello, World!";
+    const uploadBlobResponse = await blockBlobClient.upload(data, data.length);
+    responseString += "Blob was uploaded successfully. requestId: " + uploadBlobResponse.requestId;
+
+    responseString += "\nListing blobs...";
+
+    // List the blob(s) in the container.
+    for await (const blob of containerClient.listBlobsFlat()) {
+        responseString += "\n\t" + blob.name;
     }
-    console.log(`Listening on port ${PORT}`);
+
+    response.writeHead(200, {"Content-Type": "text/plain"});
+    response.end(responseString);
 });
+
+const port = process.env.PORT || 1337;
+server.listen(port);
+
+console.log("Server running at http://localhost:%d", port);
