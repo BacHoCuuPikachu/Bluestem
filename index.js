@@ -1,54 +1,43 @@
-const http = require('http');
+const express = require('express');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { v1: uuidv1} = require('uuid');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const path = require('path');
 require('dotenv').config()
 
-const server = http.createServer(async (request, response) => {
-    const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const index = require('./routes/index');
+const upload = require('./routes/upload');
 
-    if (!AZURE_STORAGE_CONNECTION_STRING) {
-        response.writeHead(404, {"Content-Type": "text/plain"});
-        response.end("Storage Connection string not found");
-        return;
-    }
+const app = express();
 
-    // Create the BlobServiceClient object which will be used to create a container client
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-        AZURE_STORAGE_CONNECTION_STRING
-    );
-    
-    // Create a unique name for the container
-    const containerName = "main";
-    
-    var responseString = "Creating container...";
-    responseString += "\n\t" + containerName;
-    
-    // Get a reference to a container
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    // Create the container
-    const createContainerResponse = await containerClient.create();
-    responseString += "\nContainer was created successfully. requestId: " + createContainerResponse.requestId;
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
-    // Create a unique name for the blob
-    const blobName = "helloworld.txt";
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
 
-    // Get a block blob client
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+app.use('/', index);
+app.use('/upload', upload);
 
-    responseString += "\nUploading to Azure storage as blob:\n\t" + blobName;
-
-    // Upload data to the blob
-    const data = "Hello, World!";
-    const uploadBlobResponse = await blockBlobClient.upload(data, data.length);
-    responseString += "Blob was uploaded successfully. requestId: " + uploadBlobResponse.requestId;
-
-    responseString += "\nListing blobs...";
-
-    // List the blob(s) in the container.
-    for await (const blob of containerClient.listBlobsFlat()) {
-        responseString += "\n\t" + blob.name;
-    }
-
-    response.writeHead(200, {"Content-Type": "text/plain"});
-    response.end(responseString);
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
+
+// error handler
+app.use((err, req, res, next) => {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+

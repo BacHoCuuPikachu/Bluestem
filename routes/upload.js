@@ -1,31 +1,43 @@
 const express = require('express');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const uuid = require('uuid');
+const multer = require('multer');
+const inMemoryStorage = multer.memoryStorage();
+const uploadStrategy = multer({ storage: inMemoryStorage }).single('image');
+const containerName = 'main';
 require('dotenv').config();
 
 const router = express.Router();
+const handleError = (err, res) => {
+    res.status(500);
+    res.render('error', { error: err });
+};
 
-router.get(async (req, res) => {
-    // Create the BlobServiceClient object which will be used to create a container client
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-        process.env.AZURE_STORAGE_CONNECTION_STRING
-    );
-        
-    // Get a reference to a container
-    const containerClient = blobServiceClient.getContainerClient('main');
+const getBlobName = originalName => {
+    const identifier = uuid.v1(); // remove "0." from start of string
+    return `${identifier}-${originalName}`;
+};
 
-    responseString += "\nListing blobs...";
+router.post('/', uploadStrategy, (req, res) => {
 
-    // List the blob(s) in the container.
-    for await (const blob of containerClient.listBlobsFlat()) {
-        responseString += "\n\t" + blob.name;
-    }
+    const
+        blobName = getBlobName(req.file.originalname)
+        , blobService = new BlockBlobClient(process.env.AZURE_STORAGE_CONNECTION_STRING, containerName, blobName)
+        , stream = getStream(req.file.buffer)
+        , streamLength = req.file.buffer.length
+        ;
 
-    res.writeHead(200, {"Content-Type": "text/plain"});
-    res.end(responseString);
+    blobService.uploadStream(stream, streamLength).then(() => {
+        res.render('success', {
+            message: 'File uploaded to Azure Blob storage.'
+        });
+    }).catch((err) => {
+        if (err) {
+            handleError(err, res);
+            return;
+        }
+    })
 });
 
-const port = process.env.PORT || 1337;
-server.listen(port);
 
-console.log("Server running at http://localhost:%d", port);
+module.exports = router;
