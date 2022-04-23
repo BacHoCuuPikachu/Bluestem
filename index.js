@@ -12,6 +12,9 @@ const server = http.createServer(async (request, response) => {
     // Get a reference to a container
     const containerClient = blobServiceClient.getContainerClient('main');
 
+    // Create the container if not existed
+    await containerClient.createIfNotExists();
+
     // Create a unique name for the blob
     const blobName = uuidv1() + ".txt";
 
