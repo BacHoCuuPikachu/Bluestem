@@ -10,7 +10,7 @@ To run the web application locally with emulated storage, install `Azurite`:
 npm install -g azurite
 ```
 
-Run `Azurite` in a separated script:
+Run `Azurite` in a separate terminal:
 
 ```ps
 azurite --silent --location c:\azurite --debug c:\azurite\debug.log
