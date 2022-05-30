@@ -54,7 +54,7 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      appCommandLine: 'npm start'
+      appCommandLine: 'pm2 start npm -- start'
       linuxFxVersion: linuxFxVersion
       appSettings: [
         {
