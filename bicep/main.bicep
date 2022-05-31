@@ -63,7 +63,6 @@ resource serverService 'Microsoft.Web/sites@2020-06-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      appCommandLine: 'pm2 start npm -- start'
       linuxFxVersion: linuxFxVersion
       ftpsState: 'AllAllowed'
       appSettings: [
@@ -72,24 +71,6 @@ resource serverService 'Microsoft.Web/sites@2020-06-01' = {
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
         }
       ]
-    }
-  }
-}
-
-resource appService 'Microsoft.Web/sites@2020-06-01' = {
-  name: webSiteName
-  location: location
-  properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      appCommandLine: 'pm2 start npm -- start'
-      linuxFxVersion: linuxFxVersion
-      ftpsState: 'AllAllowed'
-      cors: {
-        allowedOrigins: [
-          'https://server-bluestem.azurewebsites.net/'
-        ]
-      }
     }
   }
 }
@@ -104,12 +85,22 @@ resource serverSourceControls 'Microsoft.Web/sites/sourcecontrols@2021-01-01' = 
   }
 }
 
-resource clientSourceControls 'Microsoft.Web/sites/sourcecontrols@2021-01-01' = {
-  parent: appService
-  name: 'web'
+resource appService 'Microsoft.Web/staticSites@2021-03-01' = {
+  name: webSiteName
+  location: location
+  sku: {
+    name: 'free'
+    tier: 'free'
+  }
   properties: {
-    repoUrl: clientRepositoryUrl
+    allowConfigFileUpdates: true
+    stagingEnvironmentPolicy: 'Enabled'
+    repositoryUrl: clientRepositoryUrl
     branch: clientBranch
-    isManualIntegration: true
+    buildProperties: {
+      appBuildCommand: 'npm run build'
+      outputLocation: 'build'
+      skipGithubActionWorkflowGeneration: true
+    }
   }
 }
