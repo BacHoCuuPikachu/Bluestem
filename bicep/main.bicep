@@ -13,9 +13,7 @@ var storageAccountName = toLower('storage${webAppName}')
 var appServicePlanName = toLower('AppServicePlan-${webAppName}')
 var webSiteName = toLower('wapp-${webAppName}')
 var serverName = toLower('server-${webAppName}')
-
-param privateEndpointName string = 'PrivateEndpoint1'
-param privateLinkConnectionName string = 'PrivateEndpointLink1'
+var webLocation = 'westeurope'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   name: storageAccountName
@@ -87,7 +85,7 @@ resource serverSourceControls 'Microsoft.Web/sites/sourcecontrols@2021-01-01' = 
 
 resource appService 'Microsoft.Web/staticSites@2021-03-01' = {
   name: webSiteName
-  location: location
+  location: webLocation
   sku: {
     name: 'free'
     tier: 'free'
